@@ -1,0 +1,27 @@
+name: Run Telegram Bot
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Upgrade pip
+      run: pip install --upgrade pip
+    - name: Install python-telegram-bot
+      run: pip install python-telegram-bot==13.7
+    - name: Install requests
+      run: pip install requests
+    - name: Run bot
+      env:
+        TOKEN: ${{ secrets.TOKEN }}
+      run: python main.py
