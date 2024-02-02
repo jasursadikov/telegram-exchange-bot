@@ -32,7 +32,7 @@ def inline_query(update, context):
         USERS.append(user_id)
     REQUESTS_COUNT += 1
 
-    print(f'User ID: {user_id} [request] Username: @{username} | Query: \"{query}\" | [stats] Request:{REQUESTS_COUNT} Total Users:{len(USERS)}')
+    print(f'::debug ::User ID: {user_id} [request] Username: @{username} | Query: \"{query}\" | [stats] Request:{REQUESTS_COUNT} Total Users:{len(USERS)}')
 
     amount, from_currency, to_currency = query.split()
     from_currency = from_currency.upper()
@@ -63,13 +63,13 @@ def currency_to_flag(currency_code):
 
 
 def main():
-    print('Exchange Currency bot started!')
+    print('::debug ::Exchange Currency bot started!')
     updater = Updater(TOKEN)
     dp = updater.dispatcher
     dp.add_handler(InlineQueryHandler(inline_query))
     updater.start_polling()
     updater.idle()
-    print('Bot is terminated T^T')
+    print('::debug ::Bot is terminated T^T')
 
 
 if __name__ == '__main__':
