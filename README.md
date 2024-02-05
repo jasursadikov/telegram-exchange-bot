@@ -1,6 +1,6 @@
 # Currency Exchange Bot for Telegram 💸
 
-![Example](img/img.png)
+![Example](img/img.gif)
 
 This is an implementation of an inline currency exchange bot for Telegram.
 
