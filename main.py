@@ -54,11 +54,10 @@ async def main() -> None:
     logger.info('Exchange Currency bot started!')
 
     application = Application.builder().token(TOKEN).build()
-
     application.add_handler(InlineQueryHandler(inline_query))
-
-    await application.start_polling()
-    await application.idle()
+    application.add_error_handler(error_callback)
+    application.run_polling()
+    
     logger.info('Bot is terminated.')
 
 
