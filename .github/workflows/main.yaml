@@ -22,7 +22,7 @@ jobs:
         run: pip install --upgrade pip
       - name: Install dependencies
         run: |
-          pip install python-telegram-bot==13.7
+          pip install python-telegram-bot
           pip install requests
       - name: Run bot
         env:
