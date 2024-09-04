@@ -55,7 +55,6 @@ async def main() -> None:
 
     application = Application.builder().token(TOKEN).build()
     application.add_handler(InlineQueryHandler(inline_query))
-    application.add_error_handler(error_callback)
     application.run_polling()
     
     logger.info('Bot is terminated.')
