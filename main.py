@@ -10,7 +10,6 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv('TOKEN')
-USERS = []
 CRYPTO_LIST = []
 
 
@@ -62,9 +61,6 @@ def inline_query(update: Update, context: CallbackContext) -> None:
 
     user_id = update.inline_query.from_user.id
     username = update.inline_query.from_user.username
-
-    if user_id not in USERS:
-        USERS.append(user_id)
 
     logger.info(f'User ID: {user_id} | Username: @{username} | Query: \"{query}\"')
 
