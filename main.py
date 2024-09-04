@@ -33,8 +33,8 @@ def get_crypto_rate(from_currency, to_currency):
     return response[from_currency.lower()]['usd'], response[to_currency.lower()]['usd']
 
 
-def convert_currency(amount, from_currency, to_currency):
-    if is_crypto(from_currency) or is_crypto(to_currency):
+def convert_currency(amount, is_crypto, from_currency, to_currency):
+    if is_crypto:
         from_rate, to_rate = get_crypto_rate(from_currency, to_currency)
         return round(amount * (from_rate / to_rate), 6)
     else:
@@ -76,8 +76,9 @@ def inline_query(update: Update, context: CallbackContext) -> None:
 
     try:
         amount = float(amount)
-        converted_amount = convert_currency(amount, from_currency, to_currency)
-        message = f'{from_currency_emoji} {amount:,.6f} {from_currency} \u27A1 {converted_amount:,.6f} {to_currency} {to_currency_emoji}'
+        crypto = is_crypto(from_currency) or is_crypto(to_currency)
+        converted_amount = convert_currency(amount, crypto, from_currency, to_currency)
+        message = f'{from_currency_emoji} {amount:,.{2 if crypto else 6}f} {from_currency} \u27A1 {converted_amount:,.{2 if crypto else 6}f} {to_currency} {to_currency_emoji}'
         results = [
             InlineQueryResultArticle(
                 id='1',
