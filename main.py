@@ -11,21 +11,47 @@ logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv('TOKEN')
 USERS = []
-REQUESTS_COUNT = 0
+CRYPTO_LIST = []
+
+
+def fetch_crypto_list():
+    global CRYPTO_LIST
+    url = 'https://api.coingecko.com/api/v3/coins/list'
+    response = requests.get(url).json()
+    CRYPTO_LIST = [crypto['symbol'].upper() for crypto in response]
+
+
+def is_crypto(currency_code):
+    if not CRYPTO_LIST:
+        fetch_crypto_list()
+    return currency_code.upper() in CRYPTO_LIST
+
+
+def get_crypto_rate(from_currency, to_currency):
+    url = f'https://api.coingecko.com/api/v3/simple/price?ids={from_currency.lower()},{to_currency.lower()}&vs_currencies=usd'
+    response = requests.get(url).json()
+    return response[from_currency.lower()]['usd'], response[to_currency.lower()]['usd']
 
 
 def convert_currency(amount, from_currency, to_currency):
-    url = f'https://api.exchangerate-api.com/v4/latest/{from_currency}'
-    response = requests.get(url).json()
-    rates = response['rates']
-    converted_amount = amount * rates[to_currency]
-    return round(converted_amount, 2)
+    if is_crypto(from_currency) or is_crypto(to_currency):
+        from_rate, to_rate = get_crypto_rate(from_currency, to_currency)
+        return round(amount * (from_rate / to_rate), 6)
+    else:
+        url = f'https://api.exchangerate-api.com/v4/latest/{from_currency}'
+        response = requests.get(url).json()
+        rates = response['rates']
+        converted_amount = amount * rates[to_currency]
+        return round(converted_amount, 2)
 
 
-def currency_to_flag(currency_code):
-    country_code = currency_code[:2]
-    flag = ''.join(chr(127397 + ord(letter)) for letter in country_code)
-    return flag
+def currency_to_emoji(currency_code):
+    if is_crypto(currency_code):
+        return currency_code
+    else:
+        country_code = currency_code[:2]
+        flag = ''.join(chr(127397 + ord(letter)) for letter in country_code)
+        return flag
 
 
 def inline_query(update: Update, context: CallbackContext) -> None:
@@ -39,21 +65,19 @@ def inline_query(update: Update, context: CallbackContext) -> None:
 
     if user_id not in USERS:
         USERS.append(user_id)
-    REQUESTS_COUNT += 1
 
-    logger.info(
-        f'User ID: {user_id} | Username: @{username} | Query: \"{query}\" | Request:{REQUESTS_COUNT} | Total Users:{len(USERS)}')
+    logger.info(f'User ID: {user_id} | Username: @{username} | Query: \"{query}\"')
 
     amount, from_currency, to_currency = query.split()
     from_currency = from_currency.upper()
     to_currency = to_currency.upper()
-    from_currency_emoji = currency_to_flag(from_currency)
-    to_currency_emoji = currency_to_flag(to_currency)
+    from_currency_emoji = currency_to_emoji(from_currency)
+    to_currency_emoji = currency_to_emoji(to_currency)
 
     try:
         amount = float(amount)
         converted_amount = convert_currency(amount, from_currency, to_currency)
-        message = f'{from_currency_emoji} {amount:,.2f} {from_currency} \u27A1 {converted_amount:,.2f} {to_currency} {to_currency_emoji}'
+        message = f'{from_currency_emoji} {amount:,.6f} {from_currency} \u27A1 {converted_amount:,.6f} {to_currency} {to_currency_emoji}'
         results = [
             InlineQueryResultArticle(
                 id='1',
