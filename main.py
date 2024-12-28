@@ -41,6 +41,7 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE ) -> N
 
     logger.info(f'User ID: {user_id} | Username: @{username} | Query: \"{query}\"')
 
+    invalid_query = '\u26d4 Invalid query...'
     amount, from_currency, to_currency = query.split()
     from_currency = from_currency.upper()
     to_currency = to_currency.upper()
@@ -54,8 +55,8 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE ) -> N
         results = [InlineQueryResultArticle(id='1', title=message, input_message_content=InputTextMessageContent(message))]
         await update.inline_query.answer(results)
     except Exception as e:
-        logger.error(e)
-
+        results = [InlineQueryResultArticle(id='2', title=invalid_query, input_message_content=InputTextMessageContent(invalid_query))]
+        await update.inline_query.answer(results)
 
 def main() -> None:
     logger.info('Exchange Currency bot started!')
