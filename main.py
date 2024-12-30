@@ -41,7 +41,7 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE ) -> N
 
     logger.info(f'User ID: {user_id} | Username: @{username} | Query: \"{query}\"')
 
-    invalid_query = '\u26d4 Invalid query'
+    invalid_query = '\u26d4 Invalid query, try \'@crcvbot 100 USD JPY\''
     amount, from_currency, to_currency = query.split()
     from_currency = from_currency.upper()
     to_currency = to_currency.upper()
