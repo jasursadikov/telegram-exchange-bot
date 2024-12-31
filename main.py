@@ -5,8 +5,9 @@ import os
 import requests
 import asyncio
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+request_no = 0
 
 EXCHANGE_API_URL = 'https://api.exchangerate-api.com/v4/latest/{}'
 TOKEN = os.getenv('TOKEN')
@@ -31,15 +32,18 @@ async def convert_currency(amount, from_currency, to_currency):
     return converted_amount
 
 
-async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE ) -> None:
+async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.inline_query.query
     if len(query.split()) != 3:
         return
 
+    global request_no
+
     user_id = update.inline_query.from_user.id
     username = update.inline_query.from_user.username
 
-    logger.info(f'User ID: {user_id} | Username: @{username} | Query: \"{query}\"')
+    logger.info(f'[#{request_no}] User ID: {user_id} | Username: @{username} | Query: \"{query}\"')
+    request_no += 1
 
     invalid_query = '\u26d4 Invalid query, try \'@crcvbot 100 USD JPY\''
     amount, from_currency, to_currency = query.split()
@@ -56,16 +60,12 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE ) -> N
         await update.inline_query.answer(results)
     except Exception as e:
         results = [InlineQueryResultArticle(id='2', title=invalid_query, input_message_content=InputTextMessageContent(invalid_query))]
+        logger.error(e)
         await update.inline_query.answer(results)
 
-def main() -> None:
-    logger.info('Exchange Currency bot started!')
+if __name__ == '__main__':
+    logger.info('Currency Converter bot started!')
     application = Application.builder().token(TOKEN).build()
     application.add_handler(InlineQueryHandler(inline_query))
     application.run_polling(allowed_updates=Update.ALL_TYPES)
-
     logger.info('Bot is terminated!')
-
-
-if __name__ == '__main__':
-    main()
