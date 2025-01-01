@@ -1,9 +1,9 @@
+from datetime import datetime
+
+import os
+import requests
 from telegram import InlineQueryResultArticle, InputTextMessageContent, Update
 from telegram.ext import Application, ContextTypes, InlineQueryHandler
-from datetime import datetime
-import requests
-import asyncio
-import os
 
 request_no = 0
 
@@ -11,32 +11,10 @@ EXCHANGE_API_URL = 'https://api.exchangerate-api.com/v4/latest/{}'
 TOKEN = os.getenv('TOKEN')
 
 
-def sync_convert_currency(amount, from_currency, to_currency):
-	response = requests.get(EXCHANGE_API_URL.format(from_currency)).json()
-	rates = response['rates']
-	converted_amount = amount * rates[to_currency]
-	return round(converted_amount, 2)
-
-
-def currency_to_flag(currency_code):
-	country_code = currency_code[:2]
-	flag = ''.join(chr(127397 + ord(letter)) for letter in country_code)
-	return flag
-
-
-async def convert_currency(amount, from_currency, to_currency):
-	loop = asyncio.get_running_loop()
-	converted_amount = await loop.run_in_executor(None, sync_convert_currency, amount, from_currency, to_currency)
-	return converted_amount
-
-
 async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-	query = update.inline_query.query
-	if len(query.split()) != 3:
-		return
-
 	global request_no
 
+	query = update.inline_query.query
 	user_id = update.inline_query.from_user.id
 	username = update.inline_query.from_user.username
 
@@ -51,14 +29,25 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 	to_currency_emoji = currency_to_flag(to_currency)
 
 	try:
+		if len(query.split()) != 3:
+			raise IndexError("Query is too short")
+
 		amount = float(amount)
-		converted_amount = await convert_currency(amount, from_currency, to_currency)
+		response = requests.get(EXCHANGE_API_URL.format(from_currency)).json()
+		rates = response['rates']
+		converted_amount = round(amount * rates[to_currency], 2)
 		message = f'{from_currency_emoji} {amount:,.2f} {from_currency} \u27A1 {converted_amount:,.2f} {to_currency} {to_currency_emoji}'
 		results = [InlineQueryResultArticle(id='1', title=message, input_message_content=InputTextMessageContent(message))]
 		await update.inline_query.answer(results)
 	except Exception as e:
 		results = [InlineQueryResultArticle(id='2', title=invalid_query, input_message_content=InputTextMessageContent(invalid_query))]
 		await update.inline_query.answer(results)
+
+
+def currency_to_flag(currency_code):
+	country_code = currency_code[:2]
+	flag = ''.join(chr(127397 + ord(letter)) for letter in country_code)
+	return flag
 
 
 def log(str: str) -> None:
