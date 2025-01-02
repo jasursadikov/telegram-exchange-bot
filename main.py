@@ -21,16 +21,16 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 	log(f'[#{request_no}] User ID: {user_id} | Username: @{username} | Query: \"{query}\"')
 	request_no += 1
 
-	invalid_query = '\u26d4 Invalid query, try \'@crcvbot 100 USD JPY\''
-	amount, from_currency, to_currency = query.split()
-	from_currency = from_currency.upper()
-	to_currency = to_currency.upper()
-	from_currency_emoji = currency_to_flag(from_currency)
-	to_currency_emoji = currency_to_flag(to_currency)
-
 	try:
 		if len(query.split()) != 3:
 			raise IndexError("Query is too short")
+		
+		invalid_query = '\u26d4 Invalid query, try \'@crcvbot 100 USD JPY\''
+		amount, from_currency, to_currency = query.split()
+		from_currency = from_currency.upper()
+		to_currency = to_currency.upper()
+		from_currency_emoji = currency_to_flag(from_currency)
+		to_currency_emoji = currency_to_flag(to_currency)
 
 		amount = float(amount)
 		response = requests.get(EXCHANGE_API_URL.format(from_currency)).json()
